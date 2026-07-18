@@ -442,6 +442,12 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('prismar_history', JSON.stringify(history));
         renderHistory();
         alert('Cálculo guardado en el historial.');
+        
+        // Hacer scroll hacia el historial para que pueda verlo/seleccionarlo
+        const historySec = document.querySelector('.history-section');
+        if (historySec) {
+            historySec.scrollIntoView({ behavior: 'smooth' });
+        }
     }
 
     function renderHistory() {
@@ -500,6 +506,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.getElementById('btn-save').addEventListener('click', saveToHistory);
+    const btnSaveMain = document.getElementById('btn-save-main');
+    if (btnSaveMain) btnSaveMain.addEventListener('click', saveToHistory);
+
     document.getElementById('clear-history-btn').addEventListener('click', () => {
         if(confirm('¿Seguro que deseas borrar todo el historial?')) {
             localStorage.removeItem('prismar_history');

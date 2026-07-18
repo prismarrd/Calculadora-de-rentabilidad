@@ -649,6 +649,18 @@ hr {
     margin: 16px 0;
 }
 
+/* Save Action Container */
+.save-action-container {
+    text-align: center;
+    margin-top: 32px;
+    margin-bottom: 16px;
+}
+.save-action-container .btn {
+    font-size: 1.05rem;
+    padding: 12px 32px;
+    box-shadow: var(--shadow-md);
+}
+
 /* Print Styles */
 @media print {
     .sidebar, .no-print {
@@ -890,7 +902,18 @@ hr {
     }
     
     .header-actions .btn {
-        padding: 6px 10px;
-        font-size: 0.8rem;
+        padding: 10px;
+        font-size: 0.95rem;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .save-action-container .btn {
+        width: 100%;
+        padding: 14px 20px;
+    }
+
+    .mobile-hidden {
+        display: none !important;
     }
 }
