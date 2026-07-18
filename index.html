@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Rentabilidad PRISMAR</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- html2pdf.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar / Configuración y Entradas -->
+        <aside class="sidebar" id="sidebar-modal">
+            <div class="brand">
+                <!-- Fallback to a styled P if logo image is not found, but trying to load logo.png -->
+                <div class="logo-container">
+                    <img src="logo.png" alt="PRISMAR Logo" class="logo-img" id="brand-logo" onerror="this.style.display='none'; document.getElementById('logo-text').style.display='flex';">
+                    <div class="logo-text" id="logo-text" style="display:none;">P</div>
+                </div>
+                <h2>PRISMAR</h2>
+                <button id="btn-close-modal-x" class="close-x-btn" aria-label="Cerrar"><i class="ph ph-x"></i></button>
+            </div>
+
+            <div class="scrollable-content">
+                <!-- Información del Producto -->
+                <div class="input-section">
+                    <h3><i class="ph ph-package"></i> Información del Producto</h3>
+                    <div class="input-group">
+                        <label for="product-name">Nombre del Producto</label>
+                        <input type="text" id="product-name" placeholder="Ej. Relojes Premium">
+                    </div>
+                    <div class="input-group">
+                        <label for="provider-name">Proveedor (Opcional)</label>
+                        <input type="text" id="provider-name" placeholder="Ej. AliExpress / Importador">
+                    </div>
+                </div>
+
+                <!-- Sección 1: Costos del Producto -->
+                <div class="input-section">
+                    <h3><i class="ph ph-money"></i> Costos del Producto</h3>
+                    <div class="input-group">
+                        <label for="cost-product">Precio del Producto</label>
+                        <div class="input-with-icon">
+                            <span>RD$</span>
+                            <input type="number" id="cost-product" value="0" min="0" step="1">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="cost-supplier-shipping">Envío del Proveedor</label>
+                        <div class="input-with-icon">
+                            <span>RD$</span>
+                            <input type="number" id="cost-supplier-shipping" value="0" min="0" step="1">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="cost-ads">Publicidad (CPA Estimado)</label>
+                        <div class="input-with-icon">
+                            <span>RD$</span>
+                            <input type="number" id="cost-ads" value="0" min="0" step="1">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="cost-packaging">Empaque</label>
+                        <div class="input-with-icon">
+                            <span>RD$</span>
+                            <input type="number" id="cost-packaging" value="0" min="0" step="1">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="cost-other">Otros Gastos</label>
+                        <div class="input-with-icon">
+                            <span>RD$</span>
+                            <input type="number" id="cost-other" value="0" min="0" step="1">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="cost-customer-shipping">Costo Envío al Cliente (Asumido)</label>
+                        <div class="input-with-icon">
+                            <span>RD$</span>
+                            <input type="number" id="cost-customer-shipping" value="0" min="0" step="1">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección 2: Precio de Venta -->
+                <div class="input-section highlight-section">
+                    <h3><i class="ph ph-tag"></i> Precio y Estrategia</h3>
+                    <div class="input-group">
+                        <label for="sale-price">Precio de Venta Sugerido / Real</label>
+                        <div class="input-with-icon">
+                            <span>RD$</span>
+                            <input type="number" id="sale-price" value="0" min="0" step="1">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="target-margin">Margen Mínimo Objetivo (%)</label>
+                        <div class="input-with-icon">
+                            <span>%</span>
+                            <input type="number" id="target-margin" value="40" min="0" max="100" step="1">
+                        </div>
+                        <small class="helper-text">Si el margen real es menor, se mostrará alerta.</small>
+                    </div>
+                </div>
+
+                <!-- Sección 12: Configuración (Valores por Defecto) -->
+                <div class="input-section">
+                    <div class="flex-between">
+                        <h3><i class="ph ph-gear"></i> Valores por Defecto</h3>
+                        <button id="save-defaults-btn" class="btn btn-sm btn-outline" title="Guardar como predeterminados">Guardar</button>
+                    </div>
+                    <small class="helper-text">Guarda Empaque, Ads, Comisión y Envío para futuros cálculos.</small>
+                </div>
+            </div>
+            
+            <!-- Sección 9: Botones de Acción (Sidebar Bottom) -->
+            <div class="sidebar-actions">
+                <button id="btn-save" class="btn btn-primary"><i class="ph ph-floppy-disk"></i> Guardar Cálculo</button>
+                <button id="btn-clear" class="btn btn-secondary"><i class="ph ph-trash"></i> Limpiar Todo</button>
+            </div>
+            
+            <div class="mobile-only-actions">
+                <button id="btn-close-modal" class="btn btn-success btn-block"><i class="ph ph-check-circle"></i> Ver Resultados Sugeridos</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content" id="printable-area">
+            <header class="main-header">
+                <div class="header-titles">
+                    <h1>Calculadora de Rentabilidad</h1>
+                    <p class="subtitle">Analiza, optimiza y maximiza tus ganancias</p>
+                </div>
+                <div class="header-actions no-print">
+                    <button id="btn-print" class="btn btn-outline"><i class="ph ph-printer"></i> Imprimir</button>
+                    <button id="btn-export-pdf" class="btn btn-outline"><i class="ph ph-download-simple"></i> Exportar PDF</button>
+                </div>
+            </header>
+
+            <!-- Sección 8: Resumen Ejecutivo -->
+            <section class="executive-summary">
+                <div class="summary-card stat-cost">
+                    <div class="stat-icon"><i class="ph ph-coins"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-label">Costo Total</span>
+                        <span class="stat-value" id="summary-total-cost">RD$0</span>
+                    </div>
+                </div>
+                <div class="summary-card stat-sale">
+                    <div class="stat-icon"><i class="ph ph-shopping-cart"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-label">Precio de Venta</span>
+                        <span class="stat-value" id="summary-sale-price">RD$0</span>
+                    </div>
+                </div>
+                <div class="summary-card stat-profit" id="profit-card">
+                    <div class="stat-icon"><i class="ph ph-trend-up"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-label">Ganancia Neta</span>
+                        <span class="stat-value" id="summary-profit">RD$0</span>
+                    </div>
+                </div>
+                <div class="summary-card stat-margin" id="margin-card">
+                    <div class="stat-icon"><i class="ph ph-percent"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-label">Margen de Ganancia</span>
+                        <span class="stat-value" id="summary-margin">0%</span>
+                    </div>
+                </div>
+                <div class="summary-card stat-roi">
+                    <div class="stat-icon"><i class="ph ph-arrows-clockwise"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-label">ROI / Multiplicador</span>
+                        <span class="stat-value" id="summary-roi">0% <small id="summary-multiplier">(x0)</small></span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sección 4: Indicador Visual -->
+            <section class="indicator-section card">
+                <div class="indicator-header">
+                    <h3>Estado del Producto</h3>
+                    <span class="status-badge" id="status-badge">Desconocido</span>
+                </div>
+                <div class="speedometer-container">
+                    <div class="speedometer-bar">
+                        <div class="zone zone-red"></div>
+                        <div class="zone zone-yellow"></div>
+                        <div class="zone zone-green"></div>
+                        <div class="zone zone-blue"></div>
+                        <div class="marker" id="speedometer-marker"></div>
+                    </div>
+                    <div class="speedometer-labels">
+                        <span>0%</span>
+                        <span>20%</span>
+                        <span>35%</span>
+                        <span>50%+</span>
+                    </div>
+                </div>
+                <p class="indicator-message" id="indicator-message">Ingresa los datos para ver la evaluación del margen.</p>
+            </section>
+
+            <div class="dashboard-grid">
+                <!-- Left Column -->
+                <div class="grid-col">
+                    <!-- Sección 7: Recomendaciones Automáticas -->
+                    <section class="recommendations-section card">
+                        <h3><i class="ph ph-lightbulb"></i> Recomendaciones Inteligentes</h3>
+                        <ul class="recommendation-list" id="recommendation-list">
+                            <li class="reco-item reco-neutral">Ingresa datos para recibir recomendaciones.</li>
+                        </ul>
+                    </section>
+
+                    <!-- Sección 6: Simulador de Descuentos -->
+                    <section class="discount-simulator card no-print">
+                        <h3><i class="ph ph-scissors"></i> Simulador de Descuentos</h3>
+                        <p class="text-sm">¿Cómo afecta un descuento a tu rentabilidad?</p>
+                        <div class="discount-buttons">
+                            <button class="discount-btn active" data-discount="0">Sin Desc.</button>
+                            <button class="discount-btn" data-discount="5">5%</button>
+                            <button class="discount-btn" data-discount="10">10%</button>
+                            <button class="discount-btn" data-discount="15">15%</button>
+                            <button class="discount-btn" data-discount="20">20%</button>
+                            <button class="discount-btn" data-discount="25">25%</button>
+                        </div>
+                        <div class="simulated-result mt-3" id="simulated-result" style="display: none;">
+                            <div class="flex-between">
+                                <span>Nuevo Precio:</span>
+                                <strong id="sim-price">RD$0</strong>
+                            </div>
+                            <div class="flex-between">
+                                <span>Nueva Ganancia:</span>
+                                <strong id="sim-profit">RD$0</strong>
+                            </div>
+                            <div class="flex-between">
+                                <span>Nuevo Margen:</span>
+                                <strong id="sim-margin">0%</strong>
+                            </div>
+                            <div class="alert mt-2" id="sim-alert"></div>
+                        </div>
+                    </section>
+
+                    <!-- Calculadora Precio Sugerido & Envío Gratis -->
+                    <section class="smart-calculators card no-print">
+                        <h3><i class="ph ph-calculator"></i> Herramientas de Pricing</h3>
+                        
+                        <div class="tool-group">
+                            <h4>Calculadora de Envío Gratis</h4>
+                            <p class="text-sm mb-2">Precio necesario para absorber <span id="tool-shipping-cost">RD$0</span> de envío manteniendo margen.</p>
+                            <div class="flex-between align-center">
+                                <span class="tool-result highlight-text" id="tool-free-shipping-price">RD$0</span>
+                                <button class="btn btn-sm btn-outline" id="apply-free-shipping-price">Aplicar</button>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="tool-group">
+                            <h4>Precio por Margen Objetivo</h4>
+                            <p class="text-sm mb-2">Precio para alcanzar un <span id="tool-target-margin-display">40%</span> de margen.</p>
+                            <div class="flex-between align-center">
+                                <span class="tool-result highlight-text" id="tool-target-price">RD$0</span>
+                                <button class="btn btn-sm btn-outline" id="apply-target-price">Aplicar</button>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Right Column -->
+                <div class="grid-col">
+                    <!-- Sección 11: Estadísticas (Gráficos) -->
+                    <section class="charts-section card">
+                        <h3><i class="ph ph-chart-pie-slice"></i> Distribución de Costos y Ganancia</h3>
+                        <div class="chart-container">
+                            <canvas id="profitChart"></canvas>
+                        </div>
+                    </section>
+
+                    <!-- Sección 5: Oferta 2x -->
+                    <section class="offer-2x-section card no-print">
+                        <h3><i class="ph ph-copy"></i> Simulador Oferta 2 Unidades</h3>
+                        <p class="text-sm">Aumenta el ticket promedio ofreciendo 2 unidades.</p>
+                        
+                        <div class="offer-controls mt-2 mb-3">
+                            <div class="input-group">
+                                <label for="offer-price">Precio del Combo (2 Unds)</label>
+                                <div class="input-with-icon">
+                                    <span>RD$</span>
+                                    <input type="number" id="offer-price" value="0" step="1">
+                                </div>
+                                <div class="offer-suggestion-box">
+                                    <span id="offer-suggestion-text">Precio Sugerido: <strong>RD$0</strong></span>
+                                    <button type="button" class="btn btn-sm btn-outline" id="btn-apply-offer-suggestion">Aplicar</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="offer-results bg-light p-3 rounded">
+                            <div class="flex-between mb-2">
+                                <span>Ingreso Total:</span>
+                                <strong id="offer-revenue">RD$0</strong>
+                            </div>
+                            <div class="flex-between mb-2">
+                                <span>Costo Total (2x):</span>
+                                <strong id="offer-cost">RD$0</strong>
+                            </div>
+                            <div class="flex-between mb-2">
+                                <span>Ganancia Total:</span>
+                                <strong class="text-success" id="offer-profit">RD$0</strong>
+                            </div>
+                            <div class="flex-between">
+                                <span>Margen:</span>
+                                <strong id="offer-margin">0%</strong>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Sección 13: Punto de Equilibrio -->
+                    <section class="breakeven-section card no-print">
+                        <h3><i class="ph ph-target"></i> Meta de Ventas</h3>
+                        <div class="input-group">
+                            <label for="sales-goal">Meta Mensual de Ganancia</label>
+                            <div class="input-with-icon">
+                                <span>RD$</span>
+                                <input type="number" id="sales-goal" value="100000" min="0" step="1000">
+                            </div>
+                        </div>
+                        <div class="breakeven-result mt-3">
+                            Para alcanzar RD$<span id="display-goal">100,000</span> necesitas vender:
+                            <div class="big-number mt-1"><span id="units-needed">0</span> <small>unidades</small></div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- Sección 10: Historial (Abajo del todo) -->
+            <section class="history-section card mt-4 no-print">
+                <div class="flex-between">
+                    <h3><i class="ph ph-clock-counter-clockwise"></i> Historial de Cálculos</h3>
+                    <button class="btn btn-sm btn-outline text-danger" id="clear-history-btn">Borrar Historial</button>
+                </div>
+                <div class="table-responsive mt-3">
+                    <table class="table" id="history-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Producto</th>
+                                <th>Costo</th>
+                                <th>Venta</th>
+                                <th>Ganancia</th>
+                                <th>Margen</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-body">
+                            <!-- JS will populate this -->
+                            <tr><td colspan="7" class="text-center text-muted">No hay cálculos guardados.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Script -->
+    <script src="app.js"></script>
+    <button id="mobile-calc-btn" class="mobile-calc-btn"><i class="ph ph-calculator"></i> Calculadora</button>
+</body>
+</html>
